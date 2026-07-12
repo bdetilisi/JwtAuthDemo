@@ -1,4 +1,5 @@
 using JwtAuthDemo.WebApi.Data;
+using JwtAuthDemo.WebApi.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -10,8 +11,12 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register Services
+builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
 
