@@ -1,7 +1,11 @@
 using JwtAuthDemo.WebApi.Data;
+using JwtAuthDemo.WebApi.Data.Models.DTOs;
 using JwtAuthDemo.WebApi.Services.Auth;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +18,31 @@ builder.Services.AddOpenApi();
 // Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register JwtOptions
+
+JwtOptionsDto jwtOptionsDto = builder.Configuration
+    .GetRequiredSection("JwtOptions")
+    .Get<JwtOptionsDto>()
+    ?? throw new InvalidOperationException("JwtOptions section is missing in configuration.");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwtOptionsDto.Issuer,
+            ValidAudience = jwtOptionsDto.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtOptionsDto.SecretKey))
+        };
+    });
 
 // Register Services
 builder.Services.AddScoped<AuthService>();
