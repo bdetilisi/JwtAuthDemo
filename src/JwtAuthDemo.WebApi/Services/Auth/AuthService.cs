@@ -64,9 +64,10 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
     private string CreateToken(UserEntity user)
     {
         //options
-        var issuer = configuration.GetValue<string>("JwtOptions:Issuer");
-        var audience = configuration.GetValue<string>("JwtOptions:Audience");
-        var secretKey = configuration.GetValue<string>("JwtOptions:SecretKey");
+        JwtOptionsDto jwtOptionsDto = configuration
+            .GetRequiredSection("JwtOptions")
+            .Get<JwtOptionsDto>() 
+            ?? throw new InvalidOperationException("JwtOptions section is missing in configuration.");
 
         //create claims
         var claims = new List<Claim>
@@ -77,22 +78,22 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
 
         // create credentials
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(secretKey));
+            Encoding.UTF8.GetBytes(jwtOptionsDto.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
         // create token descriptor
         var tokenDescriptor1 = new SecurityTokenDescriptor
         {
-            Issuer = issuer,
-            Audience = audience,
+            Issuer = jwtOptionsDto.Issuer,
+            Audience = jwtOptionsDto.Audience,
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.Now.AddDays(1),
             SigningCredentials = credentials
         };
 
         var tokenDescriptor = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
+            issuer: jwtOptionsDto.Issuer,
+            audience: jwtOptionsDto.Audience,
             claims: claims,
             expires: DateTime.Now.AddDays(1),
             signingCredentials: credentials
