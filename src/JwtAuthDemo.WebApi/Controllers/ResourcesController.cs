@@ -1,6 +1,4 @@
-﻿using JwtAuthDemo.WebApi.Data.Models.Entities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JwtAuthDemo.WebApi.Controllers;
@@ -16,7 +14,7 @@ public class ResourcesController : ControllerBase
         return Ok("You are authenticated!");
     }
 
-    [Authorize(Roles = UserRoles.Admin)]
+    [Authorize(Roles = UserRoles.User)]
     [HttpGet("user-only")]
     public IActionResult UserOnlyEndpoint()
     {

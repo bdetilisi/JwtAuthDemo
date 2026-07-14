@@ -1,8 +1,4 @@
-﻿using JwtAuthDemo.WebApi.Data.Models.DTOs;
-using JwtAuthDemo.WebApi.Data.Models.Entities;
-using JwtAuthDemo.WebApi.Services.Auth;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace JwtAuthDemo.WebApi.Controllers;
 
@@ -10,29 +6,34 @@ namespace JwtAuthDemo.WebApi.Controllers;
 [ApiController]
 public class AuthController(AuthService authService) : ControllerBase
 {
-    
-    [HttpPost("register")]
-    public async Task<ActionResult<UserEntity>> Register(UserDto request)
+    [HttpPost(nameof(Register))]
+    public async Task<ActionResult<UserEntity>> Register(RegisterRequest request)
     {
         var result = await authService.RegisterAsync(request);
+
         if (result.IsFailed)
         {
-            string errorMessage = result.Errors.FirstOrDefault()?.Message 
-                ?? "Registration failed.";
+            string errorMessage = string.Join(
+                $";{Environment.NewLine}", 
+                result.Errors.Select(x => x.Message)
+            );
+
             return BadRequest(errorMessage);
         }
 
         return Ok(result.Value);
     }
 
-    [HttpPost("login")]
-    public async Task<ActionResult<string>> Login(UserDto request)
+    [HttpPost(nameof(Login))]
+    public async Task<ActionResult<string>> Login(LoginRequest request)
     {
         var result = await authService.LoginAsync(request);
         if (result.IsFailed)
         {
-            string errorMessage = result.Errors.FirstOrDefault()?.Message
-                ?? "Login failed.";
+            string errorMessage = string.Join(
+                $";{Environment.NewLine}",
+                result.Errors.Select(x => x.Message));
+
             return Unauthorized(errorMessage);
         }
 

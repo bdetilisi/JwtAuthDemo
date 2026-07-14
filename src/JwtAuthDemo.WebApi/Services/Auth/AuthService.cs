@@ -1,8 +1,4 @@
-﻿using FluentResults;
-using JwtAuthDemo.WebApi.Data;
-using JwtAuthDemo.WebApi.Data.Models.DTOs;
-using JwtAuthDemo.WebApi.Data.Models.Entities;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,7 +11,7 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
 {
     private readonly PasswordHasher<UserEntity> _passwordHasher = new();
 
-    public async Task<Result<UserEntity>> RegisterAsync(UserDto request)
+    public async Task<Result<UserEntity>> RegisterAsync(RegisterRequest request)
     {
         bool exists = await dbContext.Users.AnyAsync(u => u.Email == request.Email);
         if (exists)
@@ -26,7 +22,7 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
         var newUser = new UserEntity
         {
             Email = request.Email,
-            Role = request.Role,
+            Role = request.UserRole,
             PasswordHashed = _passwordHasher.HashPassword(null, request.Password)
         };
 
@@ -36,7 +32,7 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
         return Result.Ok(entityEntry.Entity);
     }
 
-    public async Task<Result<string>> LoginAsync(UserDto request)
+    public async Task<Result<string>> LoginAsync(LoginRequest request)
     {   
         var userEntity = await dbContext.Users
             .AsNoTracking()
@@ -65,9 +61,9 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
     private string CreateToken(UserEntity user)
     {
         //options
-        JwtOptionsDto jwtOptionsDto = configuration
+        JwtOptions jwtOptionsDto = configuration
             .GetRequiredSection("JwtOptions")
-            .Get<JwtOptionsDto>() 
+            .Get<JwtOptions>() 
             ?? throw new InvalidOperationException("JwtOptions section is missing in configuration.");
 
         //create claims
@@ -79,19 +75,10 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
 
         // create credentials
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtOptionsDto.SecretKey));
+            Encoding.UTF8.GetBytes(jwtOptionsDto.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
         // create token descriptor
-        var tokenDescriptor1 = new SecurityTokenDescriptor
-        {
-            Issuer = jwtOptionsDto.Issuer,
-            Audience = jwtOptionsDto.Audience,
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(1),
-            SigningCredentials = credentials
-        };
-
         var tokenDescriptor = new JwtSecurityToken(
             issuer: jwtOptionsDto.Issuer,
             audience: jwtOptionsDto.Audience,

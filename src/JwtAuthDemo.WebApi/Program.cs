@@ -1,6 +1,3 @@
-using JwtAuthDemo.WebApi.Data;
-using JwtAuthDemo.WebApi.Data.Models.DTOs;
-using JwtAuthDemo.WebApi.Services.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -21,9 +18,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register JwtOptions
 
-JwtOptionsDto jwtOptionsDto = builder.Configuration
+JwtOptions jwtOptionsDto = builder.Configuration
     .GetRequiredSection("JwtOptions")
-    .Get<JwtOptionsDto>()
+    .Get<JwtOptions>()
     ?? throw new InvalidOperationException("JwtOptions section is missing in configuration.");
 
 builder.Services
@@ -40,7 +37,7 @@ builder.Services
             ValidIssuer = jwtOptionsDto.Issuer,
             ValidAudience = jwtOptionsDto.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtOptionsDto.SecretKey))
+                Encoding.UTF8.GetBytes(jwtOptionsDto.Key))
         };
     });
 
