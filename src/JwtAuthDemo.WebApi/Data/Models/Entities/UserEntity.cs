@@ -5,11 +5,11 @@ public class UserEntity
     public int Id { get; set; }
     public required string Email { get; set; }
     public required string PasswordHashed { get; set; }
-    public UserRole Role { get; set; }
+    public required string Role { get; set; }
 }
 
-public enum UserRole
+public class UserRoles
 {
-    User = 0,
-    Admin = 1
+    public const string User = nameof(UserRoles.User);
+    public const string Admin = nameof(UserRoles.Admin);
 }

@@ -1,11 +1,9 @@
-﻿using JwtAuthDemo.WebApi.Data.Models.Entities;
-
-namespace JwtAuthDemo.WebApi.Data.Models.DTOs;
+﻿namespace JwtAuthDemo.WebApi.Data.Models.DTOs;
 
 public class UserDto
 {
     public int Id { get; set; }
     public required string Email { get; set; }
     public required string Password { get; set; }
-    public required UserRole Role { get; set; }
+    public required string Role { get; set; }
 }
