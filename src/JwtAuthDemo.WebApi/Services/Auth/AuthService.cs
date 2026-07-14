@@ -26,6 +26,7 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
         var newUser = new UserEntity
         {
             Email = request.Email,
+            Role = request.Role,
             PasswordHashed = _passwordHasher.HashPassword(null, request.Password)
         };
 
