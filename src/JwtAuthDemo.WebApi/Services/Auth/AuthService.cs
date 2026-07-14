@@ -83,7 +83,7 @@ public class AuthService(ApplicationDbContext dbContext, IConfiguration configur
             issuer: jwtOptionsDto.Issuer,
             audience: jwtOptionsDto.Audience,
             claims: claims,
-            expires: DateTime.Now.AddDays(1),
+            expires: DateTime.Now.AddMinutes(jwtOptionsDto.ExpiryMinutes),
             signingCredentials: credentials
         );
 
