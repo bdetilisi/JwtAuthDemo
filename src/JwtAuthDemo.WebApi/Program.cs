@@ -42,6 +42,7 @@ builder.Services
     });
 
 // Register Services
+builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
