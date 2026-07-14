@@ -38,18 +38,4 @@ public class AuthController(AuthService authService) : ControllerBase
 
         return Ok(result.Value);
     }
-
-    [Authorize]
-    [HttpGet("authenticated-only")]
-    public IActionResult AuthenticatedOnlyEndpoint()
-    {
-        return Ok("You are authenticated!");
-    }
-
-    [Authorize(Roles = UserRoles.Admin)]
-    [HttpGet("admin-only")]
-    public IActionResult AdminOnlyEndpoint()
-    {
-        return Ok("You are an admin!");
-    }
 }
