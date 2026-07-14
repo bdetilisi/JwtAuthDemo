@@ -1,4 +1,4 @@
-﻿using JwtAuthDemo.WebApi.Data.Models.Entities;
+﻿using JwtAuthDemo.WebApi.Data.User.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace JwtAuthDemo.WebApi.Data;
