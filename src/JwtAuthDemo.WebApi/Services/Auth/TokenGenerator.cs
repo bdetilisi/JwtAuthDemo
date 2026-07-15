@@ -43,7 +43,7 @@ public class TokenGenerator(IConfiguration configuration)
         return Result.Ok(accessToken);
     }
 
-    public Result<string> GenerateAccessToken()
+    public Result<string> GenerateRefreshToken()
     {
         var randomBytes = new byte[32];
         using var rng = RandomNumberGenerator.Create();
