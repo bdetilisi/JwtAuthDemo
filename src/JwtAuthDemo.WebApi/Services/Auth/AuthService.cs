@@ -63,11 +63,24 @@ public class AuthService(ApplicationDbContext dbContext, TokenGenerator tokenGen
             return Result.Fail<LoginResponse>(tokenResult.Errors);
         }
 
+        var refreshTokenResult = tokenGenerator.GenerateRefreshToken();
+        if (refreshTokenResult.IsFailed)
+        {
+            return Result.Fail<LoginResponse>(refreshTokenResult.Errors);
+        }
+
         var response = new LoginResponse
         {
             UserId = userEntity.Id,
-            BearToken = tokenResult.Value
+            AccessToken = tokenResult.Value,
+            RefreshToken = refreshTokenResult.Value
         };
+
+        // Save refresh token to database
+        _ = await dbContext.Users.ExecuteUpdateAsync(u => u
+            .SetProperty(user => user.RefreshToken, refreshTokenResult.Value)
+            .SetProperty(user => user.RefreshTokenExpiryTime, DateTime.Now.AddDays(7))
+        );
 
         return Result.Ok(response);
     }
