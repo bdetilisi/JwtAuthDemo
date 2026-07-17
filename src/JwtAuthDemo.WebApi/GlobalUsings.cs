@@ -1,5 +1,8 @@
 ﻿global using FluentResults;
+global using JwtAuthDemo.WebApi.Services;
+
 global using JwtAuthDemo.WebApi.Data;
+global using JwtAuthDemo.WebApi.DTOs.Token;
 global using JwtAuthDemo.WebApi.DTOs.Login;
 global using JwtAuthDemo.WebApi.DTOs.Register;
 global using JwtAuthDemo.WebApi.DTOs.Settings;
