@@ -39,4 +39,18 @@ public class AuthController(AuthService authService) : ControllerBase
 
         return Ok(result.Value);
     }
+
+    [HttpPost(nameof(RefreshToken))]
+    public async Task<ActionResult<RefreshTokenResponse>> RefreshToken(RefreshTokenRequest request)
+    {
+        var result = await authService.RefreshTokenAsync(request);
+        if (result.IsFailed)
+        {
+            string errorMessage = string.Join(
+                $";{Environment.NewLine}",
+                result.Errors.Select(x => x.Message));
+            return Unauthorized(errorMessage);
+        }
+        return Ok(result.Value);
+    }
 }
