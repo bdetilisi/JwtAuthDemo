@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using JwtAuthDemo.WebApi.DTOs.Token;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace JwtAuthDemo.WebApi.Services.Auth;
@@ -47,12 +48,12 @@ public class AuthService(ApplicationDbContext dbContext, TokenGenerator tokenGen
             return Result.Fail<LoginResponse>("User not found.");
         }
 
-        var result = _passwordHasher.VerifyHashedPassword(
+        var passwordVerifyResult = _passwordHasher.VerifyHashedPassword(
             null, // Detilisi: Not used in implementation, can be null.
             userEntity.PasswordHashed, 
             request.Password);
 
-        if (result == PasswordVerificationResult.Failed)
+        if (passwordVerifyResult == PasswordVerificationResult.Failed)
         {
             return Result.Fail<LoginResponse>("Either username or password is incorrect.");
         }
@@ -82,6 +83,55 @@ public class AuthService(ApplicationDbContext dbContext, TokenGenerator tokenGen
             .SetProperty(user => user.RefreshTokenExpiryTime, DateTime.Now.AddDays(7))
         );
 
+        return Result.Ok(response);
+    }
+
+
+    public async Task<Result<RefreshTokenResponse>> RefreshTokenAsync(RefreshTokenRequest request)
+    {
+        var userEntity = await dbContext.Users
+            .AsNoTracking()
+            .SingleOrDefaultAsync(u => u.Id == request.UserId);
+
+        if (userEntity == null)
+        {
+            return Result.Fail<RefreshTokenResponse>("User not found.");
+        }
+
+        bool isRefreshTokenValid = 
+            !string.IsNullOrEmpty(userEntity.RefreshToken) && 
+            !string.IsNullOrEmpty(request.RefreshToken) && 
+            userEntity.RefreshToken == request.RefreshToken && 
+            userEntity.RefreshTokenExpiryTime > DateTime.Now;
+
+        if (!isRefreshTokenValid)
+        {
+            return Result.Fail<RefreshTokenResponse>("Invalid or expired refresh token.");
+        }
+
+        var tokenResult = tokenGenerator.GenerateAccessToken(userEntity);
+        if (tokenResult.IsFailed)
+        {
+            return Result.Fail<RefreshTokenResponse>(tokenResult.Errors);
+        }
+
+        var refreshTokenResult = tokenGenerator.GenerateRefreshToken();
+        if (refreshTokenResult.IsFailed)
+        {
+            return Result.Fail<RefreshTokenResponse>(refreshTokenResult.Errors);
+        }
+
+        // Save new refresh token to database
+        _ = await dbContext.Users.ExecuteUpdateAsync(u => u
+            .SetProperty(user => user.RefreshToken, refreshTokenResult.Value)
+            .SetProperty(user => user.RefreshTokenExpiryTime, DateTime.Now.AddDays(7))
+        );
+
+        var response = new RefreshTokenResponse
+        {
+            AccessToken = tokenResult.Value,
+            RefreshToken = refreshTokenResult.Value
+        };
         return Result.Ok(response);
     }
 }
